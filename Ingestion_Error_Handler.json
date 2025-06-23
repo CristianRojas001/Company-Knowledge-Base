@@ -1,0 +1,70 @@
+{
+  "name": "Ingestion Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "019079c2-f1ef-4e35-8521-4c1909cde863",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08V7D563SN",
+          "mode": "list",
+          "cachedResultName": "testing"
+        },
+        "text": "=:warning: *Ingestion Error!*  \nWorkflow: Company Knowledge Base  \nError:  {{ $json.execution.error.message }}\nNode: {{ $json.workflow.name }}\n\n",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        220,
+        0
+      ],
+      "id": "14d96356-9912-4869-91bd-e8e4d61b34f8",
+      "name": "Notify via Slack",
+      "webhookId": "REDACTED_WEBHOOK_ID_2",
+      "credentials": {
+        "slackApi": {
+          "id": "39e9cSRc5ckQPIf4",
+          "name": "Slack account 5"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Notify via Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cb174eef-b4a8-4d37-9a95-6c8bd25d68f7",
+  "meta": {
+    "instanceId": "003fc5b17818334f1765cd295235e89bef66e7343997300f7f86487be08a4228"
+  },
+  "id": "5CIS0QtL3uWCFJFD",
+  "tags": []
+}
