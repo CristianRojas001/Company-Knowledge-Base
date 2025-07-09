@@ -1,0 +1,171 @@
+{
+  "name": "n8n Health Check",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## n8n Health Check. External Workflow\n\n",
+        "height": 260,
+        "width": 1000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        -180
+      ],
+      "id": "7057cb25-131b-4811-b2ff-2821d8dc3753",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        20,
+        -120
+      ],
+      "id": "eefcd77e-cdcd-462f-9823-09db13d8ff0c",
+      "name": "Every15Minutes",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://fb21-85-53-80-220.ngrok-free.app/healthz",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        -120
+      ],
+      "id": "9886245f-35de-40c8-a601-e33390306dbd",
+      "name": "CheckHealthz"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9abee738-7d63-4eb0-8bdb-ca7e911f0973",
+              "leftValue": "={{$node[\"CheckHealthz\"].context.response.statusCode}}\n",
+              "rightValue": "200",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        -120
+      ],
+      "id": "d1aa6535-5252-4d60-96a5-6093547ec584",
+      "name": "IsServiceHealthy?"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08V7D563SN",
+          "mode": "list",
+          "cachedResultName": "testing"
+        },
+        "text": "=:rotating_light: *n8n Health Check Failed!*  \n• HTTP Status: {{$node[\"CheckHealthz\"].context.response.statusCode}}  \n• Time: {{$now.format(\"YYYY-MM-DD HH:mm:ss\")}}\n",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        680,
+        -120
+      ],
+      "id": "dbe19d12-993a-4247-87ec-2388a77d145f",
+      "name": "Slack:HealthAlert",
+      "webhookId": "REDACTED_WEBHOOK_ID_2",
+      "credentials": {
+        "slackApi": {
+          "id": "39e9cSRc5ckQPIf4",
+          "name": "Slack account 5"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Every15Minutes": {
+      "main": [
+        [
+          {
+            "node": "CheckHealthz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckHealthz": {
+      "main": [
+        [
+          {
+            "node": "IsServiceHealthy?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IsServiceHealthy?": {
+      "main": [
+        [
+          {
+            "node": "Slack:HealthAlert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "19e1003c-540b-4325-abfb-f6cce9055fe5",
+  "meta": {
+    "instanceId": "6552087cf0b11b57fb371fc42d904baceb47323a60869dea3c766dca388ef8e2"
+  },
+  "id": "9gx48HkfFSlhlrxd",
+  "tags": []
+}

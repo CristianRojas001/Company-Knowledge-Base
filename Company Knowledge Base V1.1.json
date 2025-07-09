@@ -1,0 +1,958 @@
+{
+  "name": "Company Knowledge Base V1.1",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## RAG AI Data Upload",
+        "height": 720,
+        "width": 2520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1380,
+        160
+      ],
+      "typeVersion": 1,
+      "id": "c35519bc-4e6e-473d-b7ee-ac942772b9a5",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Data Processing",
+        "height": 420,
+        "width": 2540
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1380,
+        -400
+      ],
+      "typeVersion": 1,
+      "id": "35242d32-93cf-45a1-8107-36140fbadbaf",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "separator": "###SPLIT###"
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        620,
+        700
+      ],
+      "id": "850ce287-91aa-44b5-947f-36abc9cb9a8f",
+      "name": "Re-Split on Delimiter"
+    },
+    {
+      "parameters": {
+        "content": "## Idempotency check\n",
+        "height": 280,
+        "width": 940,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -660,
+        -380
+      ],
+      "id": "6a9be562-719d-4076-bad4-1a930cdc4529",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1YAEvj91ixOgA4ZyVTViz262u0mcOy1Ts",
+          "mode": "list",
+          "cachedResultName": "Company Knowledge Base",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1YAEvj91ixOgA4ZyVTViz262u0mcOy1Ts"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        -260
+      ],
+      "id": "fb0be4bb-e5e7-404d-808b-abe20c29885d",
+      "name": "GoogleDriveTriggerFileCreated",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YGB6K1f0itEvUMqp",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1060,
+        -260
+      ],
+      "id": "50bde786-0d74-4ef7-a02e-7412893ac82b",
+      "name": "LoopOverItems"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assignment-id-1",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -840,
+        -260
+      ],
+      "id": "26b0b757-3193-4436-913f-b476bd041c6b",
+      "name": "\tSetFileID"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $binary.data.mimeType }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "condition-id-1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "application/pdf"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "condition-id-2",
+                    "leftValue": "={{ $binary.data.mimeType }}",
+                    "rightValue": "text/csv",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text/csv"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        540,
+        -260
+      ],
+      "id": "729e724a-90bf-4e9f-a3de-01b058bd41d1",
+      "name": "RouteByMimeType"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('\tSetFileID').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        360,
+        -260
+      ],
+      "id": "dd19eb30-2a78-4500-b628-9429ae5fcfa1",
+      "name": "FetchFileFromDrive",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "T99ZTPWfDXkiJ987",
+          "name": "Google Drive account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        760,
+        -360
+      ],
+      "id": "00b69174-56ce-4286-867a-1e7b8e066c25",
+      "name": "ExtractTextFromPdf",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        760,
+        -160
+      ],
+      "id": "5b81e8a7-72c1-4146-87fc-343a0281ccd9",
+      "name": "ParseCsv",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      data: item.json.text ?? item.json.records\n    }\n  };\n})\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        -260
+      ],
+      "id": "d1a97636-713e-4030-ad33-28975350b801",
+      "name": "NormalizeDataField"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create metadata title and metadata description based on the document specified below (below ##Document). Metadata title and metadata description will be used to seperate data in vector DB that will be used for RAG.\n\n##Document\n{{ $json.data }}",
+        "hasOutputParser": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        -1260,
+        280
+      ],
+      "id": "e758e835-2484-4c0d-916f-d2a39ee7640a",
+      "name": "GenerateDocumentMetadata",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1260,
+        500
+      ],
+      "id": "4aad8223-e811-433c-8279-37056f5858d9",
+      "name": "MetadataLlmGemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nDq5uZNgAPkjuW6x",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"title\": \"Test Title (Replace it with real title\",\n    \"description\":\"Test Description (Replace it with real description)\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -1060,
+        500
+      ],
+      "id": "2f751de0-5ba6-4b53-a6a4-c420c1915f53",
+      "name": "ParseMetadataOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Configure your chunk parameters\nconst chunkSize    = 1000;\nconst chunkOverlap = 200;\n\n// 2. Grab the raw “data” field from your Document Data node\nlet raw = $items(\"GenerateDocumentMetadata\")[0].json.output.description;\n\n\n// 3. Ensure it’s a string (join arrays or serialize objects)\nif (Array.isArray(raw)) {\n  raw = raw.join(' ');\n} else if (typeof raw !== 'string') {\n  raw = JSON.stringify(raw);\n}\n\n// 4. Normalize whitespace: replace ALL newlines with a space\nconst text = raw.replace(/\\n/g, ' ').trim();\n\n// 5. Now do your chunk-and-overlap loop\nconst chunks = [];\nlet remainingText = text;\n\nwhile (remainingText.length > 0) {\n  let splitPoint = remainingText.lastIndexOf('. ', chunkSize);\n\n  // fallback to a word boundary if no sentence break found\n  if (splitPoint === -1) {\n    splitPoint = remainingText.lastIndexOf(' ', chunkSize);\n  }\n\n  // if still nothing sensible, hard-cut at chunkSize\n  if (splitPoint === -1 || splitPoint < chunkSize * 0.5) {\n    splitPoint = chunkSize;\n  }\n\n  // extract, push, and advance (keeping overlap)\n  const chunk = remainingText.substring(0, splitPoint).trim();\n  chunks.push(chunk);\n\n  remainingText = remainingText\n    .substring(Math.max(0, splitPoint - chunkOverlap))\n    .trim();\n\n  // if what’s left is too small, just finish it off\n  if (remainingText.length < chunkSize * 0.2) {\n    if (remainingText) chunks.push(remainingText);\n    break;\n  }\n}\n\n// 6. Return the array of chunks\nreturn { chunks };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        280
+      ],
+      "id": "01fa557e-8443-4b69-be28-950e3d605c6e",
+      "name": "ChunkDescription"
+    },
+    {
+      "parameters": {
+        "jsCode": "// If Supabase returned any rows then items.length > 0\nconst exists = items.length > 0;\nreturn [\n  {\n    json: {\n      fileExists: exists\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -260
+      ],
+      "id": "2b3bc7c5-5718-4328-83bd-28cb3fdd61bf",
+      "name": "DetectDuplicate"
+    },
+    {
+      "parameters": {
+        "useCustomSchema": true,
+        "operation": "getAll",
+        "tableId": "Company Knowledge Base",
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=metadata->>file_id",
+              "condition": "eq",
+              "keyValue": "={{$json.file_id}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        -260
+      ],
+      "id": "59ec7fc1-3baa-4033-b852-53652175df3e",
+      "name": "CheckExistingFile",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Gpk6j81K7PJUCxz5",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08V7D563SN",
+          "mode": "list",
+          "cachedResultName": "testing"
+        },
+        "text": "=:warning: Duplicate file detected – skipping ingestion  \n• File ID: {{ $('CheckExistingFile').item.json.metadata.file_id }}\n• Title: {{ $('CheckExistingFile').item.json.metadata.title }}\n",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        80,
+        -360
+      ],
+      "id": "5b23ef45-d8ce-42e5-b2ed-8ac4e5fc7ac1",
+      "name": "DuplicateSkipped",
+      "webhookId": "REDACTED_WEBHOOK_ID_2",
+      "retryOnFail": true,
+      "credentials": {
+        "slackApi": {
+          "id": "39e9cSRc5ckQPIf4",
+          "name": "Slack account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=<document> \n{{ $('NormalizeDataField').item.json.data }}\n</document> \n\nHere is the chunk we want to situate within the overall document:\n\n<chunk> \n{{ $json.chunk }}\n</chunk> \n\nPlease:\n- Provide a short and succinct **context** to situate this chunk within the document for improved search retrieval.\n- Return the **original chunk** exactly as provided unless a correction is necessary.\n- If the chunk contains an **incomplete number, percentage, or entity**, correct it using the full document.\n- If part of a **sentence is cut off**, reconstruct the missing words only if necessary for clarity.\n- If the chunk is part of a table, include the complete table entry to maintain data integrity\n- Do not add any additional explanations or formatting beyond the required output.\n\nFill in the following format:\n[succinct context] : [original chunk or corrected version if necessary]\n\nYour response should contain only the text that replaces these placeholders, without including the placeholder labels themselves."
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        -180,
+        280
+      ],
+      "id": "fb20f764-a4cd-491e-86bc-cdbd62daf74e",
+      "name": "GenerateContextSnippets",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "concatenate",
+              "field": "text",
+              "separateBy": "other",
+              "customSeparator": "###SPLIT###"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        280
+      ],
+      "id": "22ddb503-d855-445b-98b7-c243d7201d45",
+      "name": "ConcatenateContexts"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.concatenated_text }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_id",
+                "value": "={{ $('\tSetFileID').first().json.file_id}}"
+              },
+              {
+                "name": "title",
+                "value": "={{ $('GenerateDocumentMetadata').item.json.output.title }}"
+              },
+              {
+                "name": "description",
+                "value": "={{ $('GenerateDocumentMetadata').item.json.output.description }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        540,
+        500
+      ],
+      "id": "7ab40e03-1e28-46ea-9ee2-55a6e8576339",
+      "name": "PrepareDocumentsForDb"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        420,
+        500
+      ],
+      "id": "c1acdaa6-0af2-43be-ae7d-859a4b92097f",
+      "name": "CreateChunkEmbeddings",
+      "credentials": {
+        "openAiApi": {
+          "id": "eObRBOQuEeU8yp2W",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "Company Knowledge Base",
+          "mode": "list",
+          "cachedResultName": "Company Knowledge Base"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        420,
+        280
+      ],
+      "id": "328f5ddf-418f-46a5-b392-c27c41f12cdd",
+      "name": "InsertIntoSupabaseVectorStore",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Gpk6j81K7PJUCxz5",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C08V7D563SN",
+          "mode": "list",
+          "cachedResultName": "testing"
+        },
+        "text": "=\nNew file uploaded to the knowledge Base\n\nFile title: {{ $json.metadata.title }}\n\n\nDescription: {{ $json.metadata.description }}\n\n\nLink:{{ $('GoogleDriveTriggerFileCreated').item.json.webContentLink }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        820,
+        280
+      ],
+      "id": "bd86578a-500f-4ea4-8387-f8006f4e3121",
+      "name": "NotifyViaSlack",
+      "webhookId": "REDACTED_WEBHOOK_ID_2",
+      "retryOnFail": true,
+      "credentials": {
+        "slackApi": {
+          "id": "39e9cSRc5ckQPIf4",
+          "name": "Slack account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "00731d16-0779-4405-ac8d-a2e3b9167fc5",
+              "leftValue": "={{$json.fileExists}}  \n",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -180,
+        -260
+      ],
+      "id": "cf03a342-7224-470a-9f18-9c6fac62c963",
+      "name": "SkipIfDuplicate"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        500
+      ],
+      "id": "0dca8d8b-32ba-4262-9df6-0554f54401da",
+      "name": "GoogleGeminiChatModel",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nDq5uZNgAPkjuW6x",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "chunks",
+        "options": {
+          "destinationFieldName": "chunk"
+        }
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -660,
+        280
+      ],
+      "id": "7f9333d2-4517-4f41-8f0e-3754afe2955c",
+      "name": "SplitChunksToItems"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        280
+      ],
+      "id": "dfdfb60e-41b3-4576-b35b-7e2a04c6e5d2",
+      "name": "LimitChunkCountForTesting"
+    },
+    {
+      "parameters": {
+        "content": "## For Testing \n**- Deactivate for production** \n- Limit run to 10 Items.",
+        "height": 480,
+        "width": 220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -500,
+        180
+      ],
+      "id": "febfb9ac-062d-4c68-8f75-bf9a235ac4eb",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Re-Split on Delimiter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "PrepareDocumentsForDb",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GoogleDriveTriggerFileCreated": {
+      "main": [
+        [
+          {
+            "node": "LoopOverItems",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LoopOverItems": {
+      "main": [
+        [],
+        [
+          {
+            "node": "\tSetFileID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\tSetFileID": {
+      "main": [
+        [
+          {
+            "node": "CheckExistingFile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RouteByMimeType": {
+      "main": [
+        [
+          {
+            "node": "ExtractTextFromPdf",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ParseCsv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FetchFileFromDrive": {
+      "main": [
+        [
+          {
+            "node": "RouteByMimeType",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ExtractTextFromPdf": {
+      "main": [
+        [
+          {
+            "node": "NormalizeDataField",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ParseCsv": {
+      "main": [
+        [
+          {
+            "node": "NormalizeDataField",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NormalizeDataField": {
+      "main": [
+        [
+          {
+            "node": "GenerateDocumentMetadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GenerateDocumentMetadata": {
+      "main": [
+        [
+          {
+            "node": "ChunkDescription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MetadataLlmGemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "GenerateDocumentMetadata",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ParseMetadataOutput": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "GenerateDocumentMetadata",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChunkDescription": {
+      "main": [
+        [
+          {
+            "node": "SplitChunksToItems",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DetectDuplicate": {
+      "main": [
+        [
+          {
+            "node": "SkipIfDuplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckExistingFile": {
+      "main": [
+        [
+          {
+            "node": "DetectDuplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GenerateContextSnippets": {
+      "main": [
+        [
+          {
+            "node": "ConcatenateContexts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ConcatenateContexts": {
+      "main": [
+        [
+          {
+            "node": "InsertIntoSupabaseVectorStore",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepareDocumentsForDb": {
+      "ai_document": [
+        [
+          {
+            "node": "InsertIntoSupabaseVectorStore",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CreateChunkEmbeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "InsertIntoSupabaseVectorStore",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InsertIntoSupabaseVectorStore": {
+      "main": [
+        [
+          {
+            "node": "NotifyViaSlack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SkipIfDuplicate": {
+      "main": [
+        [
+          {
+            "node": "DuplicateSkipped",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FetchFileFromDrive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GoogleGeminiChatModel": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "GenerateContextSnippets",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitChunksToItems": {
+      "main": [
+        [
+          {
+            "node": "LimitChunkCountForTesting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LimitChunkCountForTesting": {
+      "main": [
+        [
+          {
+            "node": "GenerateContextSnippets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f4596139-76a5-4818-9742-b340eb79bd8b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6552087cf0b11b57fb371fc42d904baceb47323a60869dea3c766dca388ef8e2"
+  },
+  "id": "eBcH7TaD0Seiuajy",
+  "tags": []
+}
